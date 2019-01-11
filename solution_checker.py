@@ -263,9 +263,9 @@ try:
 
 	# Departure Time Feasibility Test
 
-	for t in xrange(len(model.trains)):
+	for t in range(len(model.trains)):
 
-		for r in xrange(len(model.trains[t].legs)):
+		for r in range(len(model.trains[t].legs)):
 
 			current_train = model.trains[t].legs[r]
 
@@ -279,9 +279,9 @@ try:
 
 	# Minimum Stopping Time Test
 
-	for t in xrange(len(model.trains)):
+	for t in range(len(model.trains)):
 
-		for r in xrange(len(model.trains[t].legs)):
+		for r in range(len(model.trains[t].legs)):
 
 			current_train = model.trains[t].legs[r]
 
@@ -301,7 +301,7 @@ try:
 
 	for nr in model.route_ordered_trains.keys():
 
-		for p in xrange(len(model.route_ordered_trains[nr])):
+		for p in range(len(model.route_ordered_trains[nr])):
 
 			current_train = model.route_ordered_trains[nr][p]
 
@@ -323,9 +323,9 @@ try:
 
 	# Connection Test
 
-	for t in xrange(len(model.trains)):
+	for t in range(len(model.trains)):
 
-		for r in xrange(len(model.trains[t].legs)):
+		for r in range(len(model.trains[t].legs)):
 
 			current_train = model.trains[t].legs[r]
 
@@ -333,7 +333,7 @@ try:
 
 			endtime = current_train.current_departure_time+current_train.travel_time
 
-			for p in xrange(len(model.train_station_ordered_departure_trains[EndBahnhof])):
+			for p in range(len(model.train_station_ordered_departure_trains[EndBahnhof])):
 
 				# If legs belong to the same train we skip connection test
 
@@ -367,9 +367,9 @@ try:
 
 	powerdemand = numpy.zeros(model.scheduling_interval*60+1)
 
-	for t in xrange(len(model.trains)):
+	for t in range(len(model.trains)):
 
-		for r in xrange(len(model.trains[t].legs)):
+		for r in range(len(model.trains[t].legs)):
 
 			current_train = model.trains[t].legs[r]
 
@@ -387,7 +387,7 @@ try:
 
 
 
-	for t in xrange(number_of_middle_intervals):
+	for t in range(number_of_middle_intervals):
 
 		x_min = int(min((901-1)*(t+1), len(powerdemand)-1))
 
@@ -409,7 +409,10 @@ except:
 
 	exit()
 
+for i in range(len(sum_middle_interval)):
+	sum_middle_interval[i] = sum_middle_interval[i]/float(900)
 
+print(sum_middle_interval)
 
 print ("Solution is feasible with objective {}".format(middle_maxpeak))
 
