@@ -63,3 +63,18 @@ def getSets(trainDic, powerDic):
 	
 	return T_m, PL, ST, passConOrd, timeHorizonMinutes, newPowerDic
 
+
+
+def newEL(trainDic):
+
+	trainDicNew=trainDic
+	for train in trainDicNew['Trains']:
+		for i in range(1,len(train['Legs'])):
+			train['Legs'][i]['EarliestDepartureTime']=max(train['Legs'][i]['EarliestDepartureTime'], train['Legs'][i-1]['EarliestDepartureTime'] + train['Legs'][i-1]['MinimumStoppingTime'] + train['Legs'][i-1]['TravelTime'] )
+
+	for train in trainDicNew['Trains']:
+		for i in reversed(range(0,len(train['Legs'])-1)):
+			train['Legs'][i]['LatestDepartureTime']=min(train['Legs'][i]['LatestDepartureTime'], train['Legs'][i+1]['LatestDepartureTime'] - train['Legs'][i]['MinimumStoppingTime'] - train['Legs'][i]['TravelTime'] )
+
+
+	return trainDicNew

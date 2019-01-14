@@ -12,7 +12,7 @@ def legHasNoPredec(trainDic, leg):
 	
 	return False
 
-def solve_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin):
+def solve_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, instance):
 	
 	#create a list of all legs
 	legList = []
@@ -22,26 +22,28 @@ def solve_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin):
 	
 	model = Model("Energy efficient train timetable problem")
 	
-	model.Params.SOLUTION_LIMIT = 1
+	#model.Params.SOLUTION_LIMIT = 1
 	
+	model.modelSense = GRB.MINIMIZE
+
 	#variables
 	
 	x = {}
 	#x[j, t] = 1 if the leg j departs at minute t, 0 otherwise
 	for j in legList:
 		for t in T_m:
-			x[j['LegID'], t] = model.addVar(vtype=GRB.BINARY, name="x_" + str(j['LegID']) + "_" + str(t))
+			x[j['LegID'], t] = model.addVar(vtype=GRB.BINARY, obj=0.0, name="x_" + str(j['LegID']) + "_" + str(t))
 	
 	a = {}
 	#a[tau] is the nonnegative poweramount of the whole system at second tau
 	for tau_m in T_m:
 		for tau in range(60*tau_m, 60*tau_m + 60):###############################################################CHECK THIS RANGE
-			a[tau] = model.addVar(vtype=GRB.CONTINUOUS, lb=0.0, name="a_" + str(tau))
+			a[tau] = model.addVar(vtype=GRB.CONTINUOUS, lb=0.0, obj=0.0, name="a_" + str(tau))
 	
 	I = {}
 	#I[i] is the average powerconsumption in the i'st interval
 	for i in range(1, math.ceil(timeHorizonMin/15) + 1):
-		I[i] = model.addVar(vtype=GRB.CONTINUOUS, lb=0.0, name="I_" + str(i))
+		I[i] = model.addVar(vtype=GRB.CONTINUOUS, lb=0.0, obj=0.0, name="I_" + str(i))
 	
 	#maximum forms the value of the maximal interval
 	maximum = model.addVar(vtype=GRB.CONTINUOUS, lb=0.0, obj=1.0, name="maximum")
@@ -88,9 +90,11 @@ def solve_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin):
 			if tau - 60*tau_m > 0:
 				model.addConstr(a[tau] >= quicksum(quicksum(x[j['LegID'], t] * powerDic[j['LegID']][tau - t*60] for t in range(max(tau_m - j['TravelTime'] + 1, j['EarliestDepartureTime']), tau_m + 1)) for j in legSet))
 			else:
-				model.addConstr(a[tau] >= quicksum(quicksum(x[j['LegID'], t] * powerDic[j['LegID']][tau - t*60] for t in range(max(tau_m - j['TravelTime'], j['EarliestDepartureTime']), tau_m + 1)) for j in legSet))
-			###########################################################CHECK POWER ACCESS
+				model.addConstr(a[tau] >= quicksum(quicksum(x[j['LegID'], t] * powerDic[j['LegID']][tau - t*60] for t in range(max(tau_m - j['TravelTime'] , j['EarliestDepartureTime']), tau_m + 1)) for j in legSet))
+				###########################################################CHECK POWER ACCESS
 	
+
+
 	#(7)
 	for i in range(1, math.ceil(timeHorizonMin/15) + 1):
 		model.addConstr(I[i] == (quicksum(a[tau] for tau in range(15*(i-1)*60 + 1, min(15*i*60 - 1 + 1, timeHorizonMin*60))) + a[15*(i-1)*60]/2 + a[min(15*i*60, timeHorizonMin*60 + 1)]/2 )/900)
@@ -109,8 +113,8 @@ def solve_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin):
 				if x[j['LegID'], t].X > 0.5:
 					(solution["Legs"])[j['LegID']] = t
 		
-		with open('solution.json.txt', 'w', encoding='utf-8') as outfile:
+		with open('solution_instance_' + str(instance) + '.json.txt', 'w', encoding='utf-8') as outfile:
 			json.dump(solution, outfile)
 	
-	return model, x, I, maximum
+	return model, x, a, I, maximum
 	
