@@ -6,7 +6,7 @@ import time
 
 file=open("Laufzeiten.txt","w")
 
-for instance in range(2,7):
+for instance in range(7,8):
 	start_time = time.time()
 
 	trainDic, powerDic = readWrite.readInstance(instance)
@@ -25,4 +25,4 @@ for instance in range(2,7):
 	file.write(' time: ')
 	file.write(str(elapsed_time))
 
-file.close()
+file.close
