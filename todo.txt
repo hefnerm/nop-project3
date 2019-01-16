@@ -1,7 +1,3 @@
 TODO:
--woher kommt der unterschied der werte der solution von gurobi und vom solution checker?
--testen ob das model wirklich zulaessige loesungen liefert (mit anderen instanzen testen, solution limit hoeher setzen)
--modell vergleichen mit dem papier (sind alle nebenbedingungen richtig inzugefuegt und sind das genau die die wir haben wollen?)
--x[j, t] nur fuer die ueberhaupt moeglichen abfahrtsminuten zwischen earliest departure und latest departure hinzufuegen (und dementsprechend alles noetige aendern, vlt besser in einer zweiten datei, da viele aenderungen noetig)
 -heuristiken ueberlegen/implementieren: local search (das maximale intervall berechnen (dazu kann curMaximum benutzt/angepasst werden), dann fuer dieses unter beruecksichtigung der beiden nachbarintervalle den value runterdruecken)
 -bei langeweile: tex anfangen (einleitung in die problemstellung und das modell)
