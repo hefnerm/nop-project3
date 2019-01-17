@@ -26,7 +26,7 @@ def solve_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, inst
 	
 	model = Model("Energy efficient train timetable problem")
 	
-	model.Params.timelimit=3*60*60
+	model.Params.timelimit=10800
 
 	model.modelSense = GRB.MINIMIZE
 
