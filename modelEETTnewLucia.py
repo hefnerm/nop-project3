@@ -26,7 +26,8 @@ def solve_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, inst
 	
 	model = Model("Energy efficient train timetable problem")
 	
-	model.Params.timelimit=10800
+#	model.Params.timelimit=10800
+#	model.Params.mipGap=0.000001
 
 	model.modelSense = GRB.MINIMIZE
 
@@ -56,7 +57,7 @@ def solve_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, inst
 	
 	#constraints
 	
-	#(1) #theoretisch unnötig nur zur fehler vermeidung
+	#(1) #theoretisch unnoetig nur zur fehler vermeidung
 	for i in legList:
 		model.addConstr(i['EarliestDepartureTime'] <= quicksum(t*x[i['LegID'], t] for t in TLegs[i['LegID']]))
 		model.addConstr(quicksum(t*x[i['LegID'], t] for t in TLegs[i['LegID']]) <= i['LatestDepartureTime'])
