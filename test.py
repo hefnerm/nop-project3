@@ -7,7 +7,7 @@ import modelEETTnewLucia
 
 file=open("solution_everything.txt","w")
 
-for instance in range(10,11):
+for instance in range(3,4):
 	start_time = time.time()
 
 	trainDic, powerDic = readWrite.readInstance(instance)
