@@ -26,8 +26,11 @@ def solve_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, inst
 	
 	model = Model("Energy efficient train timetable problem")
 	
-#	model.Params.timelimit=10800
-#	model.Params.mipGap=0.000001
+	if (instance in [2,3,4,5,6,8]):	
+		model.Params.mipGap=0.000001
+	if (instance in [1,7,9,10]):
+		model.Params.timelimit=60*60*5
+		model.Params.mipGap=0.01
 
 	model.modelSense = GRB.MINIMIZE
 

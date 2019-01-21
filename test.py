@@ -29,5 +29,7 @@ for instance in range(3,4):
 	file.write(str(model.ObjVal))
 	file.write(' LowerBound: ')
 	file.write(str(model.ObjBound))
+	file.write(' GAP: ')
+	file.write(str(model.MIPGap))
 	file.write('\n')
 file.close
