@@ -1,6 +1,7 @@
 from gurobipy import *
 import json
 import math
+import curMaximum
 
 #input: trainDic: a dictionary containing all train information in the format of the return of readInstance readWrite.py and a leg
 #output: true, if the leg is the starting leg of a train (the leg has no prior leg) or false otherwise
@@ -26,7 +27,7 @@ def solve_heuristic_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizo
 	
 	model = Model("Energy efficient train timetable problem")
 	
-#	model.Params.timelimit=10800
+	#model.Params.timelimit=10800
 #	model.Params.mipGap=0.000001
 
 	model.modelSense = GRB.MINIMIZE
@@ -56,18 +57,31 @@ def solve_heuristic_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizo
 	model.update()
 	
 	#########################heuristic here
-	maximum, interval = curMaximum.computeCurrentMaximum(instance)
-	minimum=min(interval)
-	for index, m in enumerate(interval):
-		if m == minimum:
-			minIndex = index
-			break
+	maximum_heu, intervals = curMaximum.computeCurrentMaximum(instance)
 	
-	for tau in range(15*minIndex, 15*(minIndex+1)+1)
+	for i in range(4):
+		minimum=min(intervals)
+
+		for index, m in enumerate(intervals):
+			if m == minimum:
+				minIndex = index
+				break
+
+		ib=15*minIndex
+		ie=15*(minIndex+1)
+	
 		for j in legList:
-			if (tau >= j['EarliestDepartureTime'] and tau <= j['LatestDepartureTime'] + j['TravelTime']):
-				model.addConstr(quicksum(t*x[j['LegID'], t] for t in TLegs[j['LegID']]) == j['CurrentDepartureTime'])
-	
+			if (j['CurrentDepartureTime']>=ib and j['CurrentDepartureTime'] + j['TravelTime'] <=ie):
+				model.addConstr(x[j['LegID'], j['CurrentDepartureTime']]==1)
+				print('doch')
+			elif (j['CurrentDepartureTime']>=ib and j['CurrentDepartureTime']<=ie and j['CurrentDepartureTime'] + j['TravelTime'] >ie):
+				model.addConstr(x[j['LegID'], j['CurrentDepartureTime']]==1)
+				print('doch')
+			elif (j['CurrentDepartureTime'] + j['TravelTime'] >=ib and j['CurrentDepartureTime'] + j['TravelTime'] <=ie and j['CurrentDepartureTime']<ib):
+				model.addConstr(x[j['LegID'], j['CurrentDepartureTime']]==1)
+				print('doch')
+
+		intervals[minIndex]=max(intervals)
 	###############################
 	
 	#constraints
