@@ -20,12 +20,18 @@ def solve_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, inst
 		for leg in train['Legs']:
 			legList.append(leg)
 
+	#dictionary that gives us for every leg all possible departure times
 	TLegs={}
 	for j in legList:
 		TLegs[j['LegID']] = range(j['EarliestDepartureTime'],j['LatestDepartureTime']+1)
+
+	#model:
 	
 	model = Model("Energy efficient train timetable problem")
 	
+	#parameters: for the easy instances 5 hours timelimit and a gap tolerance of 0.000001
+	#			 for the hard instances 5 hours timelimit
+
 	if (instance in [2,3,4,5,6,8]):
 		model.Params.timelimit=60*60*5	
 		model.Params.mipGap=0.000001
@@ -60,34 +66,31 @@ def solve_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, inst
 	model.update()
 	
 	#constraints
+	#as in the paper described and ordered
+	#(M1)
+	for j in legList:
+		model.addConstr(quicksum(x[j['LegID'], t] for t in TLegs[j['LegID']]) == 1)
 	
-	#(1) #theoretisch unnoetig nur zur fehler vermeidung
-#	for i in legList:
-#		model.addConstr(i['EarliestDepartureTime'] <= quicksum(t*x[i['LegID'], t] for t in TLegs[i['LegID']]))
-#		model.addConstr(quicksum(t*x[i['LegID'], t] for t in TLegs[i['LegID']]) <= i['LatestDepartureTime'])
-	
-	#(2)
+	#(M2)
 	for j in legList:
 		if not legHasNoPredec(trainDic, j):
 			i = PL[j['LegID']]
 			model.addConstr(quicksum(t*x[i['LegID'], t] for t in TLegs[i['LegID']]) + i['TravelTime'] + i['MinimumStoppingTime'] <= quicksum(t*x[j['LegID'], t] for t in TLegs[j['LegID']]))
 	
-	#(3)
+	#(M3)
 	for j in legList:
 		if not ST[j['LegID']] == False:
 			i = ST[j['LegID']]
 			model.addConstr(quicksum(t*x[j['LegID'], t] for t in TLegs[j['LegID']]) + j['MinimumHeadwayTime'] <= quicksum(t*x[i['LegID'], t] for t in TLegs[i['LegID']]))
 	
-	#(4)
+	#(M4)
 	for [i, j] in PassConOrd:
 		model.addConstr(5 <= -(quicksum(t*x[i['LegID'], t] for t in TLegs[i['LegID']]) + i['TravelTime']) + quicksum(t*x[j['LegID'], t] for t in TLegs[j['LegID']]))
 		model.addConstr(-(quicksum(t*x[i['LegID'], t] for t in TLegs[i['LegID']]) + i['TravelTime']) + quicksum(t*x[j['LegID'], t] for t in TLegs[j['LegID']]) <= 15)
 	
-	#(5)
-	for j in legList:
-		model.addConstr(quicksum(x[j['LegID'], t] for t in TLegs[j['LegID']]) == 1)
+
 	
-	#(6)
+	#(M5)
 	for tau_m in T_m:
 		legSet = []
 		for leg in legList:
@@ -100,17 +103,18 @@ def solve_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, inst
 			else:
 				model.addConstr(a[tau] >= quicksum(quicksum(x[j['LegID'], t] * powerDic[j['LegID']][tau - t*60] for t in range(max(tau_m - j['TravelTime'] , j['EarliestDepartureTime']), min(tau_m , j['LatestDepartureTime']) + 1)) for j in legSet))
 	
-	#(7)
+	#(M6)
 	for i in range(1, math.ceil(timeHorizonMin/15) + 1):
 		model.addConstr(I[i] == (quicksum(a[tau] for tau in range(15*(i-1)*60 + 1, min(15*i*60 - 1 + 1, timeHorizonMin*60))) + a[15*(i-1)*60]/2 + a[min(15*i*60, timeHorizonMin*60 + 1)]/2 )/900)
 	
 	
-	#(8)
+	#(M7)
 	for i in range(1, math.ceil(timeHorizonMin/15) + 1):
 		model.addConstr(maximum >= I[i])
 	
 	model.optimize()
 	
+	#save solution
 	if model.status in [2, 9, 10, 11]:
 		solution = { "Legs": {}}
 		for j in legList:

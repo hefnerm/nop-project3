@@ -63,15 +63,20 @@ def getSets(trainDic, powerDic):
 	
 	return T_m, PL, ST, passConOrd, timeHorizonMinutes, newPowerDic
 
-#input: trainDic containg all train and leg 
+#input: trainDic containg all train and leg information, especially the earliest departure time and the latest departure time for each leg
+#output: trainDic only changed the earliest and latest departure times
 
 def newELDepTimes(trainDic):
 
 	trainDicNew=trainDic
-	for train in trainDicNew['Trains']:
+	#for every train the earliest departure time of a leg has to bigger or equal than the earliest departure time of the leg 
+	#before plus the minimum stopping time plus traveltime
+	for train in trainDicNew['Trains']: 
 		for i in range(1,len(train['Legs'])):
 			train['Legs'][i]['EarliestDepartureTime']=max(train['Legs'][i]['EarliestDepartureTime'], train['Legs'][i-1]['EarliestDepartureTime'] + train['Legs'][i-1]['MinimumStoppingTime'] + train['Legs'][i-1]['TravelTime'] )
 
+	#for every train the latest departure time of a leg i has to be smaller or equal than the latest departuretime of the leg after i+1
+	# minus the minimum stopping time of i minus the traveltime 
 	for train in trainDicNew['Trains']:
 		for i in reversed(range(0,len(train['Legs'])-1)):
 			train['Legs'][i]['LatestDepartureTime']=min(train['Legs'][i]['LatestDepartureTime'], train['Legs'][i+1]['LatestDepartureTime'] - train['Legs'][i]['MinimumStoppingTime'] - train['Legs'][i]['TravelTime'] )
