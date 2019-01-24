@@ -12,7 +12,7 @@ for instance in range(1,11):
 
 	trainDic, powerDic = readWrite.readInstance(instance)
 	T_m, PL, ST, passConOrd, timeHorizonMin, newPowerDic = preprocess.getSets(trainDic, powerDic)
-	newTrainDic = preprocess.newEL(trainDic)
+	newTrainDic = preprocess.newELDepTimes(trainDic)
 
 
 	model, x, a, I, maximum = modelEETTnewLucia.solve_EETT(newTrainDic, newPowerDic, T_m, PL, ST, passConOrd, timeHorizonMin,instance)

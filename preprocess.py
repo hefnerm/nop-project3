@@ -63,9 +63,9 @@ def getSets(trainDic, powerDic):
 	
 	return T_m, PL, ST, passConOrd, timeHorizonMinutes, newPowerDic
 
+#input: trainDic containg all train and leg 
 
-
-def newEL(trainDic):
+def newELDepTimes(trainDic):
 
 	trainDicNew=trainDic
 	for train in trainDicNew['Trains']:
