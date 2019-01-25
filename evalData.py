@@ -2,8 +2,9 @@ import readWrite
 import preprocess
 for instance in range(1, 11):
 	trainDic, powerDic = readWrite.readInstance(instance)
+	preprocess.newELDepTimes(trainDic)
 	T_m, PL, ST, passConOrd, timeHorizonMin, newPowerDic = preprocess.getSets(trainDic, powerDic)
-	newTrainDic = preprocess.newELDepTimes(trainDic)
+	
 	
 	print(instance, "\n")
 	
@@ -21,7 +22,7 @@ for instance in range(1, 11):
 		#	amountRedundantCon += 1
 		#	#print(i)
 		#	#print(j, "\n")
-		elif 5 <= abs(j['LatestDepartureTime'] - (i['EarliestDepartureTime'] + i['TravelTime'])) <= 15 and 5 <= abs(j['EarliestDepartureTime'] - (i['LatestDepartureTime'] + i['TravelTime'])) <= 15:
+		elif j['LatestDepartureTime'] - (i['EarliestDepartureTime'] + i['TravelTime']) <= 15 and 5 <= j['EarliestDepartureTime'] - (i['LatestDepartureTime'] + i['TravelTime']):
 			amountReallyRedundantCon += 1
 	
-	print(len(passConOrd), nFalsePassCon, amountReallyRedundantCon, "\n")
+	print(len(passConOrd), amountReallyRedundantCon, "\n")

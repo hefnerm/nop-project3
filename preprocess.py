@@ -55,7 +55,8 @@ def getSets(trainDic, powerDic):
 		for leg2 in legCopy:
 			if leg1['EndStationID'] == leg2['StartStationID'] and not leg1['TrainID'] == leg2['TrainID']:
 				if 5 <= -(leg1['CurrentDepartureTime'] + leg1['TravelTime']) + leg2['CurrentDepartureTime'] <= 15:
-					passConOrd.append([leg1, leg2])
+					if not leg2['LatestDepartureTime'] - (leg1['EarliestDepartureTime'] + leg1['TravelTime']) <= 15 and 5 <= leg2['EarliestDepartureTime'] - (leg1['LatestDepartureTime'] + leg1['TravelTime']):
+						passConOrd.append([leg1, leg2])
 	
 	#save the powerprofile dictionary in a new format for easier access for every legID
 	newPowerDic = {}
@@ -68,19 +69,15 @@ def getSets(trainDic, powerDic):
 #output: trainDic only changed the earliest and latest departure times
 
 def newELDepTimes(trainDic):
-
-	trainDicNew=trainDic
+	
 	#for every train the earliest departure time of a leg has to bigger or equal than the earliest departure time of the leg 
 	#before plus the minimum stopping time plus traveltime
-	for train in trainDicNew['Trains']: 
+	for train in trainDic['Trains']: 
 		for i in range(1,len(train['Legs'])):
 			train['Legs'][i]['EarliestDepartureTime']=max(train['Legs'][i]['EarliestDepartureTime'], train['Legs'][i-1]['EarliestDepartureTime'] + train['Legs'][i-1]['MinimumStoppingTime'] + train['Legs'][i-1]['TravelTime'] )
-
+	
 	#for every train the latest departure time of a leg i has to be smaller or equal than the latest departuretime of the leg after i+1
 	# minus the minimum stopping time of i minus the traveltime 
-	for train in trainDicNew['Trains']:
+	for train in trainDic['Trains']:
 		for i in reversed(range(0,len(train['Legs'])-1)):
 			train['Legs'][i]['LatestDepartureTime']=min(train['Legs'][i]['LatestDepartureTime'], train['Legs'][i+1]['LatestDepartureTime'] - train['Legs'][i]['MinimumStoppingTime'] - train['Legs'][i]['TravelTime'] )
-
-
-	return trainDicNew
