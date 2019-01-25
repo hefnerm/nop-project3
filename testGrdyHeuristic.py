@@ -4,7 +4,7 @@ import curMaximum
 import time
 import grdy_heuristic
 
-instance = 10
+instance = 1
 
 trainDic, powerDic = readWrite.readInstance(instance)
 preprocess.newELDepTimes(trainDic)

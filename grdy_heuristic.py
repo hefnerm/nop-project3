@@ -4,7 +4,7 @@ import math
 import time
 import json
 
-run_time = 18000
+run_time = 180
 
 #input: trainDic: a dictionary containing all train information in the format of the return of readInstance readWrite.py and a leg
 #output: true, if the leg is the starting leg of a train (the leg has no prior leg) or false otherwise
