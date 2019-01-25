@@ -1,13 +1,11 @@
 import readWrite
 import preprocess
-import curMaximum
-import time
-import grdy_heuristic
+import first_idea_min_heuristic
 
-instance = 10
+instance = 1
 
 trainDic, powerDic = readWrite.readInstance(instance)
 T_m, PL, ST, passConOrd, timeHorizonMin, newPowerDic = preprocess.getSets(trainDic, powerDic)
 newTrainDic = preprocess.newELDepTimes(trainDic)
 
-x, maxIndex, maxVal = grdy_heuristic.greedy_heuristic(trainDic, newPowerDic, T_m, PL, ST, passConOrd, timeHorizonMin, instance)
+x, maxIndex, maxVal = first_idea_min_heuristic.min_heuristic(trainDic, newPowerDic, T_m, PL, ST, passConOrd, timeHorizonMin, instance)
