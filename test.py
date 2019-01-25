@@ -10,11 +10,12 @@ file=open("solution_everything.txt","w")
 for instance in range(1,11):
 	start_time = time.time()
 
+	#read and preprocess the data
 	trainDic, powerDic = readWrite.readInstance(instance)
 	T_m, PL, ST, passConOrd, timeHorizonMin, newPowerDic = preprocess.getSets(trainDic, powerDic)
-	newTrainDic = preprocess.newEL(trainDic)
+	newTrainDic = preprocess.newELDepTimes(trainDic)
 
-
+	#solve the model
 	model, x, a, I, maximum = modelEETTnewLucia.solve_EETT(newTrainDic, newPowerDic, T_m, PL, ST, passConOrd, timeHorizonMin,instance)
 
 	elapsed_time = time.time() - start_time
