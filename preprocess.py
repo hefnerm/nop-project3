@@ -7,6 +7,7 @@ def getSets(trainDic, powerDic):
 	timeHorizonMinutes = 0
 	for train in trainDic['Trains']:
 		for leg in train['Legs']:
+			leg['TrainID'] = train['TrainID']
 			if leg['LatestDepartureTime'] + leg['TravelTime'] > timeHorizonMinutes:
 				timeHorizonMinutes = leg['LatestDepartureTime'] + leg['TravelTime']
 	
@@ -52,7 +53,7 @@ def getSets(trainDic, powerDic):
 	passConOrd = []
 	for leg1 in legs:
 		for leg2 in legCopy:
-			if leg1['EndStationID'] == leg2['StartStationID']:
+			if leg1['EndStationID'] == leg2['StartStationID'] and not leg1['TrainID'] == leg2['TrainID']:
 				if 5 <= -(leg1['CurrentDepartureTime'] + leg1['TravelTime']) + leg2['CurrentDepartureTime'] <= 15:
 					passConOrd.append([leg1, leg2])
 	
