@@ -31,7 +31,7 @@ def solve_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, inst
 		model.Params.mipGap=0.000001
 	if (instance in [1,7,9,10]):
 		model.Params.timelimit=60*60*5
-		model.Params.mipGap=0.01
+#model.Params.mipGap=0.01
 
 	model.modelSense = GRB.MINIMIZE
 
