@@ -55,7 +55,7 @@ def getSets(trainDic, powerDic):
 		for leg2 in legCopy:
 			if leg1['EndStationID'] == leg2['StartStationID'] and not leg1['TrainID'] == leg2['TrainID']:
 				if 5 <= -(leg1['CurrentDepartureTime'] + leg1['TravelTime']) + leg2['CurrentDepartureTime'] <= 15:
-					if not leg2['LatestDepartureTime'] - (leg1['EarliestDepartureTime'] + leg1['TravelTime']) <= 15 and 5 <= leg2['EarliestDepartureTime'] - (leg1['LatestDepartureTime'] + leg1['TravelTime']):
+					if not (leg2['LatestDepartureTime'] - (leg1['EarliestDepartureTime'] + leg1['TravelTime']) <= 15 and 5 <= leg2['EarliestDepartureTime'] - (leg1['LatestDepartureTime'] + leg1['TravelTime'])):
 						passConOrd.append([leg1, leg2])
 	
 	#save the powerprofile dictionary in a new format for easier access for every legID

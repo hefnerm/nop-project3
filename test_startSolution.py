@@ -3,11 +3,11 @@ import preprocess
 import modelEETT
 import curMaximum
 import time
-import modelEETTnewLucia
+import modelEETT_startSolution
 
 file=open("solution_everything.txt","w")
 
-for instance in range(1,11):
+for instance in range(1,2):
 	start_time = time.time()
 
 	#read and preprocess the data
@@ -16,7 +16,7 @@ for instance in range(1,11):
 	T_m, PL, ST, passConOrd, timeHorizonMin, newPowerDic = preprocess.getSets(trainDic, powerDic)
 
 	#solve the model
-	model, x, a, I, maximum = modelEETTnewLucia.solve_EETT(trainDic, newPowerDic, T_m, PL, ST, passConOrd, timeHorizonMin,instance)
+	model, x, a, I, maximum = modelEETT_startSolution.solve_EETT(trainDic, newPowerDic, T_m, PL, ST, passConOrd, timeHorizonMin,instance)
 
 	elapsed_time = time.time() - start_time
 	print('instance:', instance, 'time:', elapsed_time)
