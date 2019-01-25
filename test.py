@@ -7,7 +7,7 @@ import modelEETTnewLucia
 
 file=open("solution_everything.txt","w")
 
-for instance in range(1,11):
+for instance in range(2,4):
 	start_time = time.time()
 
 	#read and preprocess the data
