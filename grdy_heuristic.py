@@ -4,7 +4,7 @@ import math
 import time
 import json
 
-run_time = 180
+run_time = 1800
 
 #input: trainDic: a dictionary containing all train information in the format of the return of readInstance readWrite.py and a leg
 #output: true, if the leg is the starting leg of a train (the leg has no prior leg) or false otherwise
@@ -16,7 +16,7 @@ def legHasNoPredec(trainDic, leg):
 	
 	return False
 
-def solve_heuristic(trainDic, powerDic, fixedLegs, fixedTimes, T_m, PL, ST, PassConOrd, timeHorizonMin, instance, upper_bound):
+def solve_heuristic(trainDic, powerDic, fixedLegs, fixedTimes, T_m, TLegs, PL, ST, PassConOrd, timeHorizonMin, instance, upper_bound, requiredDecrease, timeLimit):
 	
 	#create a list of all legs
 	legList = []
@@ -24,15 +24,16 @@ def solve_heuristic(trainDic, powerDic, fixedLegs, fixedTimes, T_m, PL, ST, Pass
 		for leg in train['Legs']:
 			legList.append(leg)
 
-	TLegs = {}
-	for j in legList:
-		TLegs[j['LegID']] = range(j['EarliestDepartureTime'], j['LatestDepartureTime'] + 1)
+	#TLegs = {}
+	#for j in legList:
+	#	TLegs[j['LegID']] = range(j['EarliestDepartureTime'], j['LatestDepartureTime'] + 1)
 	
 	model = Model("Greedy heuristic model for energy efficient train timetable problem")
 	
-	#model.Params.timelimit = 3600
+	model.Params.timelimit = timeLimit
 	#model.Params.mipGap = 0.000001
-	model.Params.BestBdStop = upper_bound
+	if requiredDecrease == 1:
+		model.Params.BestBdStop = upper_bound
 
 	model.modelSense = GRB.MINIMIZE
 
@@ -113,6 +114,9 @@ def solve_heuristic(trainDic, powerDic, fixedLegs, fixedTimes, T_m, PL, ST, Pass
 	for i in range(1, math.ceil(timeHorizonMin/15) + 1):
 		model.addConstr(maximum >= I[i])
 	
+	if requiredDecrease != 1:
+		model.addConstr(maximum <= requiredDecrease*upper_bound)
+	
 	model.optimize()
 	
 	Ireturn = []
@@ -123,15 +127,28 @@ def solve_heuristic(trainDic, powerDic, fixedLegs, fixedTimes, T_m, PL, ST, Pass
 		
 	elif model.status in [9, 11]:
 		try:
-			for i in I:
-				Ireturn.append(I[i].UB)
-			maxReturn = maximum.UB
-		except:
-			maxReturn = 0
+			if maximum.X < upper_bound:
+				for i in I:
+					Ireturn.append(I[i].X)
+				maxReturn = maximum.X
+			else:
+				maxReturn = 0
+				print("\nmaximum.X is equal to or larger than upper_bound; maximum.X: ", maximum.X, " upper_bound: ", upper_bound)
+		except AttributeError:
+			try:
+				if maximum.UB < upper_bound:
+					for i in I:
+						Ireturn.append(I[i].UB)
+					maxReturn = maximum.UB
+				else:
+					maxReturn = 0
+					print("\nmaximum.UB is equal to or larger than upper_bound; maximum.UB: ", maximum.UB, " upper_bound: ", upper_bound)
+			except AttributeError:
+				maxReturn = 0
 	else:
 		maxReturn = 0
 	
-	return model, x, a, Ireturn, maxReturn, TLegs
+	return model, x, a, Ireturn, maxReturn
 
 def setCurDepTimes(legList, maxIndex):
 	fixedLegs = []
@@ -158,28 +175,38 @@ def getFixedLegs(legList, legDepartureTime, fixedTimes, maxIndex, intervalRange)
 	
 	return fixedLegs, variableLegs
 
-def createSolution(model, x, TLegs, legList, instance, string):
+def createSolution(value, x, TLegs, legList, instance, requiredDecrease, string):
 	print(string)
-	print("best objective: ", model.ObjVal)
+	print("best objective: ", value)
 	solution = { "Legs": {}}
 	try:
 		for j in legList:
 			for t in TLegs[j['LegID']]:
-				if x[j['LegID'], t].X > 0.5:
-					solution["Legs"][j['LegID']] = t
-	except:
+				#happens, if the solution to create is still the solution handed over
+				if isinstance(x[j['LegID'], t], int):
+					if x[j['LegID'], t] > 0.5:
+						solution["Legs"][j['LegID']] = t
+				else:
+					if x[j['LegID'], t].X > 0.5:
+						solution["Legs"][j['LegID']] = t
+	#AttributeError if the access on the value of x throws an error
+	except AttributeError:
 		for j in legList:
 			for t in TLegs[j['LegID']]:
 				if x[j['LegID'], t].UB > 0.5:
 					solution["Legs"][j['LegID']] = t
 	try:
-		with open('./solutions_greedy_heuristic/solution_greedy_heuristic_instance_' + str(instance) + '.json.txt', 'w', encoding='utf-8') as outfile:
-			json.dump(solution, outfile)
+		if requiredDecrease == 1:
+			with open('./solutions_greedy_heuristic_30m/solution_greedy_heuristic_instance_' + str(instance) + '.json.txt', 'w', encoding='utf-8') as outfile:
+				json.dump(solution, outfile)
+		else:
+			with open('./solutions_greedy_heuristic_requiredDecrease_30m/solution_greedy_heuristic_instance_' + str(instance) + '_rD_ ' + str(requiredDecrease) + '.json.txt', 'w', encoding='utf-8') as outfile:
+				json.dump(solution, outfile)
 	except:
 		print("solutionfile could not be created!")
 		exit()
 
-def greedy_heuristic(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, instance):
+def greedy_heuristic(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, instance, requiredDecrease):
 	
 	start_time = time.time()
 	
@@ -199,28 +226,49 @@ def greedy_heuristic(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin
 	
 	fixedLegs, fixedTimes, variableLegs = setCurDepTimes(legList, maxIndex)
 	
+	#only needed if the first iterating step is infeasible or USR_OBJ_LIMIT is reached in the first step
+	legDepartureTime = {}
+	for j in legList:
+		legDepartureTime[j['LegID']] = j['CurrentDepartureTime']
+	
 	elapsed_time = time.time() - start_time
 	
 	oldModel = None
-	oldX = None
-	oldTLegs = None
+	oldX = {}
+	TLegs = {}
+	for leg in legList:
+		TLegs[leg['LegID']] = range(leg['EarliestDepartureTime'], leg['LatestDepartureTime'] + 1)
+		for t in TLegs[leg['LegID']]:
+			if t != leg['CurrentDepartureTime']:
+				oldX[leg['LegID'], t] = 0
+			else:
+				oldX[leg['LegID'], t] = 1
 	
 	while elapsed_time < run_time:
+		
+		if oldModel == None:
+			legDepartureTime = {}
+			for j in legList:
+				legDepartureTime[j['LegID']] = j['CurrentDepartureTime']
+		
 		print("\nargMax: ", maxIndex)
 		print("maxVal: ", maxVal)
 		print("I: ", I)
 		print("intervalRange: ", intervalRange)
 		print("nrFixedLegs: ", len(fixedLegs))
-		print("nrVarLegs: ", len(variableLegs),"\n")
+		print("nrVarLegs: ", len(variableLegs))
+		print("elapsed time:", elapsed_time, "\n")
 		prevMax = maxVal
 		prevI = I
-		if maxVal <= 0:######################################################################DELETE THIS
-			Error("THIS SHOULD NOT HAPPEN!")
 		
-		model, x, a, I, maxVal, TLegs = solve_heuristic(trainDic, powerDic, fixedLegs, fixedTimes, T_m, PL, ST, PassConOrd, timeHorizonMin, instance, maxVal)
+		elapsed_time = time.time() - start_time
+		
+		model, x, a, I, maxVal = solve_heuristic(trainDic, powerDic, fixedLegs, fixedTimes, T_m, TLegs, PL, ST, PassConOrd, timeHorizonMin, instance, maxVal, requiredDecrease, run_time - elapsed_time)
+		
 		
 		if maxVal == 0:
 			maxVal = prevMax
+			x = oldX.copy()
 		
 		#infeasible
 		if model.status in [3, 15]:
@@ -234,22 +282,21 @@ def greedy_heuristic(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin
 		#timelimit reached
 		if model.status == 9:
 			if len(I) > 0:
-				createSolution(model, x, TLegs, legList, instance, "timelimit in model reached!")
+				createSolution(maxVal, x, TLegs, legList, instance, requiredDecrease, "timelimit in model reached!")
 			else:
-				createSolution(oldModel, oldX, oldTLegs, legList, instance, "timelimit in model reached!")
+				createSolution(maxVal, oldX, TLegs, legList, instance, requiredDecrease, "timelimit in model reached!")
 			break
 		
 		#keyboard interrupt
 		if model.status == 11:
 			if len(I) > 0:
-				createSolution(model, x, TLegs, legList, instance, "keyboard interrupt; no upper bound found, old solution created")
+				createSolution(maxVal, x, TLegs, legList, instance, requiredDecrease, "keyboard interrupt; upper bound created as solution")
 			else:
-				createSolution(oldModel, oldX, oldTLegs, legList, instance, "keyboard interrupt; no upper bound found, old solution created")
+				createSolution(maxVal, oldX, TLegs, legList, instance, requiredDecrease, "keyboard interrupt; no upper bound found, old solution created")
 			break
 		
 		oldModel = model
-		oldX = x
-		oldTLegs = TLegs
+		oldX = x.copy()
 		
 		for index, m in enumerate(I):
 			if m == maxVal:
@@ -259,7 +306,7 @@ def greedy_heuristic(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin
 		if newMaxIndex == maxIndex:
 			if maxIndex - intervalRange <= 0 and maxIndex + intervalRange >= len(I):
 				elapsed_time = time.time() - start_time
-				createSolution(model, x, TLegs, legList, instance, "optimal solution found! \n time: " + str(elapsed_time) + "s")
+				createSolution(maxVal, x, TLegs, legList, instance, requiredDecrease, "optimal solution found! \n time: " + str(elapsed_time) + "s")
 				break
 			
 			intervalRange += 1
@@ -271,7 +318,7 @@ def greedy_heuristic(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin
 		legDepartureTime = {}
 		
 		for j_id, t in x:
-			if x[j_id, t].X == 1:
+			if x[j_id, t].X > 0.5:
 				legDepartureTime[j_id] = t
 		
 		fixedLegs, variableLegs = getFixedLegs(legList, legDepartureTime, fixedTimes, maxIndex, intervalRange)
@@ -279,6 +326,7 @@ def greedy_heuristic(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin
 		elapsed_time = time.time() - start_time
 	
 	if elapsed_time >= run_time:
-		createSolution(oldModel, oldX, oldTLegs, legList, instance, "timelimit reached! ran " + str(elapsed_time) + "s")
+		print("#######################################################################################################################################################################################################################################################################################################")
+		createSolution(maxVal, oldX, TLegs, legList, instance, requiredDecrease, "timelimit reached! ran " + str(elapsed_time) + "s")
 	
 	return x, maxIndex, maxVal
