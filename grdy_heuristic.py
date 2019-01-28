@@ -113,9 +113,6 @@ def solve_heuristic(trainDic, powerDic, fixedLegs, fixedTimes, T_m, PL, ST, Pass
 	for i in range(1, math.ceil(timeHorizonMin/15) + 1):
 		model.addConstr(maximum >= I[i])
 	
-	#if upper_bound > 0:
-	#	model.addConstr(maximum <= 0.9999*upper_bound)
-	
 	model.optimize()
 	
 	Ireturn = []
