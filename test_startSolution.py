@@ -7,7 +7,7 @@ import modelEETT_startSolution
 
 file=open("solution_everything.txt","w")
 
-for instance in range(1,2):
+for instance in [1,7,9,10]:
 	start_time = time.time()
 
 	#read and preprocess the data
