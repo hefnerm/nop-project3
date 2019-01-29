@@ -16,11 +16,11 @@ def legHasNoPredec(trainDic, leg):
 def solve_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, instance):
 
 	#start_solution #####################################HERE
-	if instance in LISTE:
+	if instance in [10]:
 		with codecs.open("./solutions_greedy_heuristic_30m/solution_greedy_heuristic_instance_" + str(instance) + ".json.txt", "r", encoding="utf-8") as infile:
 			solutionHeuristic = json.load(infile, encoding="utf-8")
 	else:
-		with codecs.open("./solutions_greedy_heuristic_requiredDemand_30m/solution_greedy_heuristic_instance_" + str(instance) + "_rD_0.999.json.txt", "r", encoding="utf-8") as infile:
+		with codecs.open("./solutions_greedy_heuristic_requiredDecrease_30m/solution_greedy_heuristic_instance_" + str(instance) + "_rD.json.txt", "r", encoding="utf-8") as infile:
 			solutionHeuristic = json.load(infile, encoding="utf-8")
 	############################################################
 
