@@ -197,7 +197,7 @@ def createSolution(value, x, TLegs, legList, instance, requiredDecrease, string)
 					solution["Legs"][j['LegID']] = t
 	try:
 		if requiredDecrease == 1:
-			with open('./solutions_greedy_heuristic_30m/solution_greedy_heuristic_instance_' + str(instance) + '.json.txt', 'w', encoding='utf-8') as outfile:
+			with open('./solutions_greedy_heuristic/solution_greedy_heuristic_instance_' + str(instance) + '.json.txt', 'w', encoding='utf-8') as outfile:
 				json.dump(solution, outfile)
 		else:
 			with open('./solutions_greedy_heuristic_requiredDecrease/solution_greedy_heuristic_instance_' + str(instance) + '_rD.json.txt', 'w', encoding='utf-8') as outfile:
