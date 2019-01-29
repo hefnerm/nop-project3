@@ -4,7 +4,7 @@ import curMaximum
 import time
 import grdy_heuristic
 
-for instance in [1,7,9,10]:
+for instance in [9]:
 	
 	trainDic, powerDic = readWrite.readInstance(instance)
 	preprocess.newELDepTimes(trainDic)
@@ -14,6 +14,6 @@ for instance in [1,7,9,10]:
 	
 	x, maxIndex, maxVal = grdy_heuristic.greedy_heuristic(trainDic, newPowerDic, T_m, PL, ST, passConOrd, timeHorizonMin, instance, 1)
 	
-	print("\ninstance ", instance, ", required decrease 0.999")
+	print("\ninstance ", instance, ", required decrease 0.9")
 	
-	x, maxIndex, maxVal = grdy_heuristic.greedy_heuristic(trainDic, newPowerDic, T_m, PL, ST, passConOrd, timeHorizonMin, instance, 0.999)
+	x, maxIndex, maxVal = grdy_heuristic.greedy_heuristic(trainDic, newPowerDic, T_m, PL, ST, passConOrd, timeHorizonMin, instance, 0.9)
