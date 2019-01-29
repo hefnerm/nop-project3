@@ -4,7 +4,7 @@ import math
 import time
 import json
 
-run_time = 1800
+run_time = 18000
 
 #input: trainDic: a dictionary containing all train information in the format of the return of readInstance readWrite.py and a leg
 #output: true, if the leg is the starting leg of a train (the leg has no prior leg) or false otherwise
@@ -200,7 +200,7 @@ def createSolution(value, x, TLegs, legList, instance, requiredDecrease, string)
 			with open('./solutions_greedy_heuristic_30m/solution_greedy_heuristic_instance_' + str(instance) + '.json.txt', 'w', encoding='utf-8') as outfile:
 				json.dump(solution, outfile)
 		else:
-			with open('./solutions_greedy_heuristic_requiredDecrease_30m/solution_greedy_heuristic_instance_' + str(instance) + '_rD_ ' + str(requiredDecrease) + '.json.txt', 'w', encoding='utf-8') as outfile:
+			with open('./solutions_greedy_heuristic_requiredDecrease/solution_greedy_heuristic_instance_' + str(instance) + '_rD.json.txt', 'w', encoding='utf-8') as outfile:
 				json.dump(solution, outfile)
 	except:
 		print("solutionfile could not be created!")
