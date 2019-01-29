@@ -14,6 +14,6 @@ for instance in [9]:
 	
 	x, maxIndex, maxVal = grdy_heuristic.greedy_heuristic(trainDic, newPowerDic, T_m, PL, ST, passConOrd, timeHorizonMin, instance, 1)
 	
-	print("\ninstance ", instance, ", required decrease 0.9")
+	print("\ninstance ", instance, ", required decrease 0.999")
 	
-	x, maxIndex, maxVal = grdy_heuristic.greedy_heuristic(trainDic, newPowerDic, T_m, PL, ST, passConOrd, timeHorizonMin, instance, 0.9)
+	x, maxIndex, maxVal = grdy_heuristic.greedy_heuristic(trainDic, newPowerDic, T_m, PL, ST, passConOrd, timeHorizonMin, instance, 0.999)
