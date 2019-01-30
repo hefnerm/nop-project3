@@ -118,4 +118,4 @@ def solve_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, inst
 			json.dump(solution, outfile)
 	
 	return model, x, a, I, maximum
-	
+
