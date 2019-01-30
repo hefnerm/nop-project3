@@ -102,7 +102,7 @@ def solve_heuristic(trainDic, powerDic, fixedLegs, fixedTimes, T_m, TLegs, PL, S
 	
 	#(M6)
 	for i in range(1, math.ceil(timeHorizonMin/15) + 1):
-		model.addConstr(I[i] == (quicksum(a[tau] for tau in range(15*(i-1)*60 + 1, min(15*i*60 - 1 + 1, timeHorizonMin*60))) + a[15*(i-1)*60]/2 + a[min(15*i*60, timeHorizonMin*60 + 1)]/2 )/900)
+		model.addConstr(I[i] == (quicksum(a[tau] for tau in range(15*(i-1)*60 + 1, min(15*i*60 - 1 + 1, timeHorizonMin*60))) + a[15*(i-1)*60]/2 + a[min(15*i*60, timeHorizonMin*60)]/2 )/900)
 	
 	#(M7)
 	for i in range(1, math.ceil(timeHorizonMin/15) + 1):
