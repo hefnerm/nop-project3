@@ -200,7 +200,7 @@ def createSolution(value, x, TLegs, legList, instance, requiredDecrease, string)
 			with open('./solutions_greedy_heuristic/solution_greedy_heuristic_instance_' + str(instance) + '.json.txt', 'w', encoding='utf-8') as outfile:
 				json.dump(solution, outfile)
 		else:
-			with open('./solutions_greedy_heuristic_requiredDecrease/solution_greedy_heuristic_instance_' + str(instance) + '_rD.json.txt', 'w', encoding='utf-8') as outfile:
+			with open('./solutions_greedy_heuristic_requiredDecrease/solution_greedy_heuristic_instance_' + str(instance) + '_rD_var.json.txt', 'w', encoding='utf-8') as outfile:
 				json.dump(solution, outfile)
 	except:
 		print("solutionfile could not be created!")
