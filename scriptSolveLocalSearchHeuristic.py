@@ -3,16 +3,16 @@ import preprocess
 import time
 import localSearchHeuristic
 
-pcoCorrect = False
+pcoCorrect = True
 requiredDecrease = 1
 timeLimit = 18000
 
-for instance in [1]:
+for instance in [1, 7, 9, 10]:
 	
 	trainDic, powerDic = readWrite.readInstance(instance)
 	preprocess.newELDepTimes(trainDic)
 	T_m, PL, ST, passConOrd, timeHorizonMin, newPowerDic = preprocess.getSets(trainDic, powerDic, pcoCorrect)
 	
-	print("\ninstance ", instance, ", required decrease ", requiredDecrease)
+	print("instance ", instance, ", required decrease ", requiredDecrease)
 	
 	x, maxIndex, maxVal = localSearchHeuristic.local_search(trainDic, newPowerDic, T_m, PL, ST, passConOrd, timeHorizonMin, timeLimit, instance, requiredDecrease, pcoCorrect)
