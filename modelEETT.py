@@ -19,28 +19,23 @@ def solve_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, inst
 	for train in trainDic['Trains']:
 		for leg in train['Legs']:
 			legList.append(leg)
-
+	
 	#dictionary that gives us for every leg all possible departure times
-	TLegs={}
+	TLegs = {}
 	for j in legList:
-		TLegs[j['LegID']] = range(j['EarliestDepartureTime'],j['LatestDepartureTime']+1)
-
+		TLegs[j['LegID']] = range(j['EarliestDepartureTime'], j['LatestDepartureTime'] + 1)
+	
 	#model:
 	
 	model = Model("Energy efficient train timetable problem")
 	
-	#parameters: for the easy instances 5 hours timelimit and a gap tolerance of 0.000001
-	#			 for the hard instances 5 hours timelimit
-
-	if (instance in [2,3,4,5,6,8]):
-		model.Params.timelimit=60*60*5	
-		model.Params.mipGap=0.000001
-	if (instance in [1,7,9,10]):
-		model.Params.timelimit=60*60*5
-#model.Params.mipGap=0.01
-
+	#parameters: 5 hours timelimit and a gap tolerance of 0.000001
+	
+	model.Params.timelimit = 60*60*5
+	model.Params.mipGap = 0.000001
+	
 	model.modelSense = GRB.MINIMIZE
-
+	
 	#variables
 	
 	x = {}
@@ -52,7 +47,7 @@ def solve_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, inst
 	a = {}
 	#a[tau] is the nonnegative poweramount of the whole system at second tau
 	for tau_m in T_m:
-		for tau in range(60*tau_m, 60*tau_m + 60):###############################################################CHECK THIS RANGE
+		for tau in range(60*tau_m, 60*tau_m + 60):
 			a[tau] = model.addVar(vtype=GRB.CONTINUOUS, lb=0.0, obj=0.0, name="a_" + str(tau))
 	
 	I = {}
@@ -88,8 +83,6 @@ def solve_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, inst
 		model.addConstr(5 <= -(quicksum(t*x[i['LegID'], t] for t in TLegs[i['LegID']]) + i['TravelTime']) + quicksum(t*x[j['LegID'], t] for t in TLegs[j['LegID']]))
 		model.addConstr(-(quicksum(t*x[i['LegID'], t] for t in TLegs[i['LegID']]) + i['TravelTime']) + quicksum(t*x[j['LegID'], t] for t in TLegs[j['LegID']]) <= 15)
 	
-
-	
 	#(M5)
 	for tau_m in T_m:
 		legSet = []
@@ -107,7 +100,6 @@ def solve_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, inst
 	for i in range(1, math.ceil(timeHorizonMin/15) + 1):
 		model.addConstr(I[i] == (quicksum(a[tau] for tau in range(15*(i-1)*60 + 1, min(15*i*60 - 1 + 1, timeHorizonMin*60))) + a[15*(i-1)*60]/2 + a[min(15*i*60, timeHorizonMin*60 + 1)]/2 )/900)
 	
-	
 	#(M7)
 	for i in range(1, math.ceil(timeHorizonMin/15) + 1):
 		model.addConstr(maximum >= I[i])
@@ -122,7 +114,7 @@ def solve_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, inst
 				if x[j['LegID'], t].X > 0.5:
 					(solution["Legs"])[j['LegID']] = t
 		
-		with open('solution_instance_' + str(instance) + '.json.txt', 'w', encoding='utf-8') as outfile:
+		with open('./solutions_modelEETT/solution_instance_' + str(instance) + '.json.txt', 'w', encoding='utf-8') as outfile:
 			json.dump(solution, outfile)
 	
 	return model, x, a, I, maximum

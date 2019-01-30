@@ -4,19 +4,14 @@ import math
 
 #input: instance number between 1 and 10
 #output: the value of the current solution of the instance and a list of all interval values
-def computeCurrentMaximum(instance):
+def computeCurrentMaximum(instance, pcoCorrect=True):
 	trainDic, powerDicPrev = readWrite.readInstance(instance)
-	T_m, PL, ST, passConOrd, timeHorizonMin, powerDic = preprocess.getSets(trainDic, powerDicPrev)
+	T_m, PL, ST, passConOrd, timeHorizonMin, powerDic = preprocess.getSets(trainDic, powerDicPrev, pcoCorrect)
 	
 	legList = []
 	for train in trainDic['Trains']:
 		for leg in train['Legs']:
 			legList.append(leg)
-	
-	#maxCurRidingTime = 0
-	#for leg in legList:
-	#	if leg['CurrentDepartureTime'] + leg['TravelTime'] > maxCurRidingTime:
-	#		maxCurRidingTime = leg['CurrentDepartureTime'] + leg['TravelTime']
 	
 	I = []
 	a = []

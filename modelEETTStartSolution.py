@@ -15,43 +15,34 @@ def legHasNoPredec(trainDic, leg):
 
 def solve_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, instance):
 
-	#start_solution #####################################HERE
-	if instance in [10]:
-		with codecs.open("./solutions_greedy_heuristic_30m/solution_greedy_heuristic_instance_" + str(instance) + ".json.txt", "r", encoding="utf-8") as infile:
+	#start_solution
+	if instance == 1:
+		with codecs.open("./solutions_greedy_heuristic_withError/solution_greedy_heuristic_instance_1_wE.json.txt", "r", encoding="utf-8") as infile:
 			solutionHeuristic = json.load(infile, encoding="utf-8")
-	else:
-		with codecs.open("./solutions_greedy_heuristic_requiredDecrease_30m/solution_greedy_heuristic_instance_" + str(instance) + "_rD.json.txt", "r", encoding="utf-8") as infile:
-			solutionHeuristic = json.load(infile, encoding="utf-8")
-	############################################################
-
+	
 	#create a list of all legs
 	legList = []
 	for train in trainDic['Trains']:
 		for leg in train['Legs']:
 			legList.append(leg)
-
-
+	
+	
 	#dictionary that gives us for every leg all possible departure times
-	TLegs={}
+	TLegs = {}
 	for j in legList:
-		TLegs[j['LegID']] = range(j['EarliestDepartureTime'],j['LatestDepartureTime']+1)
-
+		TLegs[j['LegID']] = range(j['EarliestDepartureTime'], j['LatestDepartureTime'] + 1)
+	
 	#model:
 	
 	model = Model("Energy efficient train timetable problem")
 	
-	#parameters: for the easy instances 5 hours timelimit and a gap tolerance of 0.000001
-	#			 for the hard instances 5 hours timelimit
-
-	if (instance in [2,3,4,5,6,8]):
-		model.Params.timelimit=60*60*4.5	
-		model.Params.mipGap=0.000001
-	if (instance in [1,7,9,10]):
-		model.Params.timelimit=60*60*4.5
-#model.Params.mipGap=0.01
-
+	#parameters: 4.5 hours timelimit and a gap tolerance of 0.000001
+	
+	model.Params.timelimit = 60*60*4.5
+	model.Params.mipGap = 0.000001
+	
 	model.modelSense = GRB.MINIMIZE
-
+	
 	#variables
 	
 	x = {}
@@ -75,14 +66,14 @@ def solve_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, inst
 	maximum = model.addVar(vtype=GRB.CONTINUOUS, lb=0.0, obj=1.0, name="maximum")
 	
 	model.update()
-
+	
 	for j in legList:
 		for t in TLegs[j['LegID']]:
 			if t==solutionHeuristic['Legs'][str(j['LegID'])]:
 				x[j['LegID'], t].start = 1
 			else:
 				x[j['LegID'], t].start = 0
-
+	
 	#constraints
 	#as in the paper described and ordered
 	#(M1)
@@ -106,8 +97,6 @@ def solve_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, inst
 		model.addConstr(5 <= -(quicksum(t*x[i['LegID'], t] for t in TLegs[i['LegID']]) + i['TravelTime']) + quicksum(t*x[j['LegID'], t] for t in TLegs[j['LegID']]))
 		model.addConstr(-(quicksum(t*x[i['LegID'], t] for t in TLegs[i['LegID']]) + i['TravelTime']) + quicksum(t*x[j['LegID'], t] for t in TLegs[j['LegID']]) <= 15)
 	
-
-	
 	#(M5)
 	for tau_m in T_m:
 		legSet = []
@@ -125,7 +114,6 @@ def solve_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, inst
 	for i in range(1, math.ceil(timeHorizonMin/15) + 1):
 		model.addConstr(I[i] == (quicksum(a[tau] for tau in range(15*(i-1)*60 + 1, min(15*i*60 - 1 + 1, timeHorizonMin*60))) + a[15*(i-1)*60]/2 + a[min(15*i*60, timeHorizonMin*60 + 1)]/2 )/900)
 	
-	
 	#(M7)
 	for i in range(1, math.ceil(timeHorizonMin/15) + 1):
 		model.addConstr(maximum >= I[i])
@@ -140,8 +128,7 @@ def solve_EETT(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, inst
 				if x[j['LegID'], t].X > 0.5:
 					(solution["Legs"])[j['LegID']] = t
 		
-		with open('solution_instance_' + str(instance) + '.json.txt', 'w', encoding='utf-8') as outfile:
+		with open('./solutions_modelWithStartSolution/solution_instance_' + str(instance) + '.json.txt', 'w', encoding='utf-8') as outfile:
 			json.dump(solution, outfile)
 	
 	return model, x, a, I, maximum
-	

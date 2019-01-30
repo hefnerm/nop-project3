@@ -1,3 +1,0 @@
-TODO:
--heuristiken ueberlegen/implementieren: local search (das maximale intervall berechnen (dazu kann curMaximum benutzt/angepasst werden), dann fuer dieses unter beruecksichtigung der beiden nachbarintervalle den value runterdruecken)
--bei langeweile: tex anfangen (einleitung in die problemstellung und das modell)
