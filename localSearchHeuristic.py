@@ -110,7 +110,7 @@ def solve_heuristic(trainDic, powerDic, fixedLegs, fixedTimes, T_m, TLegs, PL, S
 	
 	model.optimize()
 	
-	#return variables
+	#return variables: return a value of 0 if the model is interrupted by timelimit or keyboard
 	Ireturn = []
 	if not model.status in [3, 9, 11, 15]:
 		for i in I:
@@ -142,6 +142,8 @@ def solve_heuristic(trainDic, powerDic, fixedLegs, fixedTimes, T_m, TLegs, PL, S
 	
 	return model, x, a, Ireturn, maxReturn
 
+#input: legList a list containing all legs of the instance, maxIndex the number of the maximal interval
+#output: for the original current departure times of the legs a list fixedLegs of all legs that shall be fixed, variableLegs that shall be variable and fixedTimes, a dictionary containing the fixed times for the fixed legs; all for an interval width of from 15 minutes before the interval of maxIndex until 15 minutes after that interval
 def setCurDepTimes(legList, maxIndex):
 	fixedLegs = []
 	variableLegs = []
@@ -155,6 +157,8 @@ def setCurDepTimes(legList, maxIndex):
 	
 	return fixedLegs, fixedTimes, variableLegs
 
+#input: legList a list containing all legs of the instance, legDepartureTime a dictionary containing for every legID the current departure time, fixedTimes a dictionary, that will contain the new fixed times for the fixed legs, maxIndex the number of the maximal interval and intervalRange the number of intervals in front of and after the maximal interval, that shall be variable
+#output: fixedLegs a list of all legs, that shall be fixed at the times in fixedTimes and variableLegs a list of all variable legs
 def getFixedLegs(legList, legDepartureTime, fixedTimes, maxIndex, intervalRange):
 	fixedLegs = []
 	variableLegs = []
@@ -167,6 +171,7 @@ def getFixedLegs(legList, legDepartureTime, fixedTimes, maxIndex, intervalRange)
 	
 	return fixedLegs, variableLegs
 
+#input: value the value of the solution that shall be created, x the x[j, t] decision variables, TLegs a dictionary containing all possible departure times for each leg, legList a list containing all legs of the instance, instance the number of the instance this heuristic is working on, requiredDecrease the factor <=1 of improvement, string a string that shall be printed on the console, pcoCorrect a boolean for if the heuristic shall consider the correct PCOs or shall also allow passenger connections between legs with same trainID
 def createSolution(value, x, TLegs, legList, instance, requiredDecrease, string, pcoCorrect):
 	print(string)
 	print("best objective: ", value)
@@ -202,6 +207,8 @@ def createSolution(value, x, TLegs, legList, instance, requiredDecrease, string,
 		print("solutionfile could not be created!")
 		exit()
 
+#input: trainDic and powerDic dictionaries containing the train information and the powerpofiles of each leg in the form of the return of the preprocess function getSets, T_m a list of the time horizon in minutes, PL a dictionary containing for each legID the predecessor leg (if existing), ST a dictionary containing for each legID the successor train on the same track (if existing), PassConOrd a list of legs forming passenger connections, timeHorizonMin the time horizon in minutes (maximal value of T_m), timeLimit a time limit for the heuristic, instance the number of the instance which shall be solved, requiredDecrease a factor of required improvement <=1 in each iteration step, pcoCorrect a boolean telling if the heuristic shall consider the correct PCOs or shall also allow connections between legs of the same train
+#solves the local search heuristics iteratively
 def local_search(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, timeLimit, instance, requiredDecrease, pcoCorrect):
 	
 	start_time = time.time()
@@ -214,12 +221,14 @@ def local_search(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, ti
 	
 	intervalRange = 1
 	
+	#compute the intervals and value of the given current departure times
 	maxVal, I = curMaximum.computeCurrentMaximum(instance, pcoCorrect)
 	for index, m in enumerate(I):
 		if m == maxVal:
 			maxIndex = index
 			break
 	
+	#get the legs that shall be fixed in the first iterating step
 	fixedLegs, fixedTimes, variableLegs = setCurDepTimes(legList, maxIndex)
 	
 	#only needed if the first iterating step is infeasible or USR_OBJ_LIMIT is reached in the first step
@@ -232,6 +241,7 @@ def local_search(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, ti
 	oldModel = None
 	oldX = {}
 	TLegs = {}
+	#get the feasible departure times for each leg and store them in a dictionary
 	for leg in legList:
 		TLegs[leg['LegID']] = range(leg['EarliestDepartureTime'], leg['LatestDepartureTime'] + 1)
 		for t in TLegs[leg['LegID']]:
@@ -242,6 +252,7 @@ def local_search(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, ti
 	
 	while elapsed_time < timeLimit:
 		
+		#only happens in the first iterating step and is only needed if all models are interrupted or infeasible or reach the timelimit
 		if oldModel == None:
 			legDepartureTime = {}
 			for j in legList:
@@ -259,6 +270,7 @@ def local_search(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, ti
 		
 		elapsed_time = time.time() - start_time
 		
+		#solve the EETT model with fixed legs
 		model, x, a, I, maxVal = solve_heuristic(trainDic, powerDic, fixedLegs, fixedTimes, T_m, TLegs, PL, ST, PassConOrd, timeHorizonMin, instance, maxVal, requiredDecrease, timeLimit - elapsed_time)
 		
 		
@@ -294,6 +306,7 @@ def local_search(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, ti
 		oldModel = model
 		oldX = x.copy()
 		
+		#get the new maximal index
 		for index, m in enumerate(I):
 			if m == maxVal:
 				newMaxIndex = index
@@ -313,10 +326,12 @@ def local_search(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, ti
 		
 		legDepartureTime = {}
 		
+		#set the new departure times as the return of the EETT model
 		for j_id, t in x:
 			if x[j_id, t].X > 0.5:
 				legDepartureTime[j_id] = t
 		
+		#get the new fixed legs
 		fixedLegs, variableLegs = getFixedLegs(legList, legDepartureTime, fixedTimes, maxIndex, intervalRange)
 		
 		elapsed_time = time.time() - start_time
@@ -324,4 +339,3 @@ def local_search(trainDic, powerDic, T_m, PL, ST, PassConOrd, timeHorizonMin, ti
 	if elapsed_time >= timeLimit:
 		createSolution(maxVal, oldX, TLegs, legList, instance, requiredDecrease, "timelimit reached! elapsed time: " + str(elapsed_time) + "s", pcoCorrect)
 	
-	return x, maxIndex, maxVal

@@ -49,7 +49,7 @@ def getSets(trainDic, powerDic, pcoCorrect=True):
 		if minCurDepTime == None:
 			ST[leg['LegID']] = False
 	
-	#legs l1 and l2 form a passenger connection iff l1 ends in the same station l2 starts and the difference of the current departure time of l2 and the arriving time of l1 is between 5 and 15 minutes
+	#legs l1 and l2 form a passenger connection iff l1 ends in the same station l2 starts and the difference of the current departure time of l2 and the arriving time of l1 is between 5 and 15 minutes and l1 and l2 have different trainIDs
 	passConOrd = []
 	if pcoCorrect:
 		for leg1 in legs:
@@ -58,6 +58,7 @@ def getSets(trainDic, powerDic, pcoCorrect=True):
 					if 5 <= -(leg1['CurrentDepartureTime'] + leg1['TravelTime']) + leg2['CurrentDepartureTime'] <= 15:
 						if not (leg2['LatestDepartureTime'] - (leg1['EarliestDepartureTime'] + leg1['TravelTime']) <= 15 and 5 <= leg2['EarliestDepartureTime'] - (leg1['LatestDepartureTime'] + leg1['TravelTime'])):
 							passConOrd.append([leg1, leg2])
+	#for the heuristic with false PCOs used. here the two legs are allowed to have the same trainID
 	else:
 		for leg1 in legs:
 			for leg2 in legCopy:
