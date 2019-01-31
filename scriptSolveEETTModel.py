@@ -6,7 +6,7 @@ import time
 
 file=open("solution_everything.txt","w")
 
-for instance in [1,7,9,10]:
+for instance in range(1,11):
 	start_time = time.time()
 
 	#read and preprocess the data
